@@ -2,7 +2,7 @@ from uuid import uuid4
 from todoapp.dynamo import create_or_get_table
 
 
-class ItemModel():
+class ItemModel:
 
     table = create_or_get_table()
 

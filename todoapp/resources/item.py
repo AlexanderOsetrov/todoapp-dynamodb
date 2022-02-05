@@ -1,4 +1,3 @@
-import imp
 from flask_restful import Resource, reqparse
 from todoapp.models.item import ItemModel
 from flask import current_app as app
@@ -60,8 +59,8 @@ class ItemList(Resource):
         try:
             app.logger.info("Adding the item to DB: %s" % item.json())
             item.save_to_db()
-        except Exception:
-            return {'message': "An error occured inserting the item"}, 500
+        except Exception as e:
+            return {'message': f"An error occured inserting the item: {e}"}, 500
         return item.json(), 201
 
     def delete(self):
