@@ -1,0 +1,9 @@
+{
+  "webdriver_remote": true,
+  "selenoid_host": "http://192.168.50.183:4444/wd/hub",
+  "app_host": "192.168.50.183:5001",
+  "capabilities": {
+    "browserName": "chrome",
+    "browserVersion": "97.0"
+  }
+}

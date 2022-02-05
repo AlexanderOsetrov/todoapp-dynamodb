@@ -1,0 +1,5 @@
+pytest
+pytest_bdd
+selenium
+requests
+allure-pytest-bdd

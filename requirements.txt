@@ -1,0 +1,6 @@
+Flask
+Flask-RESTful
+boto3
+psycopg2-binary
+flask-cors
+gunicorn
