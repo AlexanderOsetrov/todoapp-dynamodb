@@ -1,0 +1,32 @@
+version: '3.8'
+
+networks:
+  app_net:
+    name: app_net_dev
+    driver: bridge
+
+services:
+  web:
+    build: .
+    image: todo-list-app:latest
+    container_name: todo-app
+    command: gunicorn --bind 0.0.0.0:5000 --chdir /usr/src/app/ manage:app
+    depends_on:
+      - dynamodb
+    ports:
+      - "5000:5000/tcp"
+    env_file:
+      - .env
+    networks:
+      - app_net
+    volumes:
+      - ~/.aws/:/root/.aws:ro
+
+  dynamodb:
+      image: amazon/dynamodb-local
+      hostname: dynamodb-local
+      container_name: dynamodb-local
+      ports:
+          - "8000:8000"
+      networks:
+        - app_net
