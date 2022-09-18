@@ -1,0 +1,47 @@
+<table class="table">
+                <thead>
+                    <tr class="table-danger">
+                        <th scope="col">ID</th>
+                        <th scope="col">Todo</th>
+                        <th scope="col">Completed</th>
+                        <th scope="col">Order</th>
+                        <th scope="col">User ID</th>
+                        <th scope="col">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for item in items %}
+                    <tr>
+                        <th scope="row">{{ item.item_id }}</th>
+                        <td>{{ item.title }}</td>
+                        <td>{{ item.completed }}</td>
+                        <td>{{ item.order }}</td>
+                        <td>
+                            <a href="{{ url_for('settings.edit_item', item_id=item.item_id) }}">
+                                <button type="button" class="btn btn-outline-danger">Edit</button>
+                            </a>
+                            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#confirmItemDelete{{ item.item_id }}">Delete</button>
+                            <div class="modal fade" id="confirmItemDelete{{ item.item_id }}" tabindex="-1" aria-labelledby="confirmDeleteLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="confirmItemDeleteLabel">Confirm Item Deletion</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            Are you sure you want to delete item '{{ item.title }}' ?
+                                        </div>
+                                        <div class="modal-footer">
+                                            <a href="{{ url_for('settings.delete_item', item_id=item.item_id) }}">
+                                                <button type="button" class="btn btn-outline-danger">Delete</button>
+                                            </a>
+                                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+              </tbody>
+            </table>

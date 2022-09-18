@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Todos App</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
+        <link rel="stylesheet" href="node_modules/todomvc-common/base.css">
+		<link rel="stylesheet" href="node_modules/todomvc-app-css/index.css">
+    </head>
+<body>
+        <div>
+            <nav class="navbar navbar-expand-lg bg-light">
+                <div class="container-fluid">
+                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                            <li class="nav-item">
+                                <a class="nav-link active" aria-current="page" href="{{ url_for('main.index') }}">Home</a>
+                            </li>
+                            {% if config.USER_AUTHENTICATED %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('main.todos') }}">Todos</a>
+                            </li>
+                            {% endif %}
+                            {% if not config.USER_AUTHENTICATED %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('auth.login') }}">Login</a>
+                            </li>
+                            {% endif %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('auth.signup') }}">Sign Up</a>
+                            </li>
+                            {% if config.CURRENT_USER == "admin" %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('settings.get_settings') }}">Settings</a>
+                            </li>
+                            {% endif %}
+                            {% if config.USER_AUTHENTICATED %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a>
+                            </li>
+                            {% endif %}
+                            {% if config.USER_AUTHENTICATED %}
+                            <li class="nav-item">
+                                <a class="nav-link link-danger">Hi, {{ config.CURRENT_USER }}!</a>
+                            </li>
+                            {% endif %}
+                            <li class="nav-item">
+                                <a class="nav-link">{{ config.APP_VERSION }}</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+        </div>
+            <div>
+                <div>
+                    {% block content %}
+                    {% endblock %}
+                </div>
+            </div>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-u1OknCvxWvY5kfmNBILK2hRnQC3Pr17a+RTT6rIHI7NnikvbZlHgTPOOmMi466C8" crossorigin="anonymous"></script>
+</body>
+</html>

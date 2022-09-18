@@ -1,0 +1,51 @@
+{% with messages = get_flashed_messages() %}
+                {% if messages %}
+                <div class="alert alert-danger" role="alert">
+                    {{ messages[0] }}
+                </div>
+            {% endif %}
+            {% endwith %}
+            <table class="table">
+                <thead>
+                    <tr class="table-danger">
+                        <th scope="col">ID</th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Email</th>
+                        <th scope="col">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for user in users %}
+                    <tr>
+                        <th scope="row">{{ user.id }}</th>
+                        <td>{{ user.name }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>
+                            <a href="{{ url_for('settings.edit_user', uid=user.uid) }}">
+                                <button type="button" class="btn btn-outline-danger">Edit</button>
+                            </a>
+                            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#confirmUserDelete{{ user.id }}">Delete</button>
+                            <div class="modal fade" id="confirmUserDelete{{ user.id }}" tabindex="-1" aria-labelledby="confirmDeleteLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="confirmUserDeleteLabel">Confirm User Deletion</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            Are you sure you want to delete user '{{ user.name }}' ?
+                                        </div>
+                                        <div class="modal-footer">
+                                            <a href="{{ url_for('settings.delete_user', uid=user.uid) }}">
+                                                <button type="button" class="btn btn-outline-danger">Delete</button>
+                                            </a>
+                                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+              </tbody>
+            </table>

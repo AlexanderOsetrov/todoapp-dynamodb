@@ -2,25 +2,26 @@ import os
 import boto3
 
 
-DB_URL = os.environ.get('DYNAMODB_URL', 'http://dynamodb:8000')
+DB_URL = os.environ.get('DYNAMODB_URL', 'http://127.0.0.1:8000')
 dynamodb_resource = boto3.resource('dynamodb', endpoint_url=DB_URL)
 dynamodb_client = boto3.client('dynamodb', endpoint_url=DB_URL)
 
 
 def create_or_get_table():
     tables = dynamodb_client.list_tables()['TableNames']
-    if 'items' not in tables:
+    if 'users' not in tables:
         table = dynamodb_resource.create_table(
-            TableName='items',
+            TableName='users',
             KeySchema=[
                 {
-                    'AttributeName': 'id',
+                    'AttributeName': 'uid',
                     'KeyType': 'HASH'
                 }
+
             ],
             AttributeDefinitions=[
                 {
-                    'AttributeName': 'id',
+                    'AttributeName': 'uid',
                     'AttributeType': 'S'
                 }
             ],
@@ -31,4 +32,4 @@ def create_or_get_table():
         )
         return table
     else:
-        return dynamodb_resource.Table('items')
+        return dynamodb_resource.Table('users')

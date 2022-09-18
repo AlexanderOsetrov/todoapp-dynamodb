@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-sm">
+    <h3 class="display-5 text-danger text-opacity-25 text-center">Edit User</h3>
+    <div>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="alert alert-danger" role="alert">
+            {{ messages[0] }}
+        </div>
+        {% endif %}
+        {% endwith %}
+        <form action="{{ url_for('settings.update_user', uid=uid) }}" method="POST">
+            <div class="mb-3 row">
+                <label for="InputEmail" class="col-sm-2 col-form-label">Email address</label>
+                <div class="col-sm-10">
+                    <input type="email" class="form-control" name="email" id="InputEmail" value="{{ email }}">
+                </div>
+            </div>
+            <div class="mb-3 row">
+                <label for="InputName" class="col-sm-2 col-form-label">Name</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" name="name" id="InputName" value="{{ name }}">
+                </div>
+            </div>
+            <div class="mb-3 row">
+                <label for="InputPassword" class="col-sm-2 col-form-label">Password</label>
+                <div class="col-sm-10">
+                    <input type="password" name="password" class="form-control" id="InputPassword" placeholder="******">
+                </div>
+            </div>
+            <button type="submit" class="btn btn-outline-danger">Submit</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
