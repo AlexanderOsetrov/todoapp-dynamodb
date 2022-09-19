@@ -2,7 +2,7 @@ import os
 import boto3
 
 
-DB_URL = os.environ.get('DYNAMODB_URL', 'http://127.0.0.1:8000')
+DB_URL = os.environ.get('DYNAMODB_URL', 'http://dynamodb:8000')
 dynamodb_resource = boto3.resource('dynamodb', endpoint_url=DB_URL)
 dynamodb_client = boto3.client('dynamodb', endpoint_url=DB_URL)
 

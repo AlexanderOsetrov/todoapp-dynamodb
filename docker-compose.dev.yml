@@ -9,14 +9,14 @@ services:
   web:
     build: .
     image: todo-list-app:latest
-    container_name: todo-app
+    container_name: todo-app-dev
     command: gunicorn --bind 0.0.0.0:5000 --chdir /usr/src/app/ manage:app
     depends_on:
       - dynamodb
     ports:
       - "5000:5000/tcp"
     env_file:
-      - .env
+      - .env.prod
     networks:
       - app_net
     volumes:

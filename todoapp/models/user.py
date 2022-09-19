@@ -88,8 +88,9 @@ class UserModel:
                 if item['id'] == item_id:
                     app.logger.debug("User with item %s found:\n%s" % (item_id, user.json()))
                     return user
-            else:
-                return {}
+        else:
+            app.logger.debug("User with item %s not found" % item_id)
+            return {}
 
     def save_user_to_db(self):
         self.table.put_item(

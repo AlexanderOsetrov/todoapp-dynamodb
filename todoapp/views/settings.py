@@ -18,15 +18,17 @@ def get_settings():
     users = [user for user in UserModel.get_all()]
     items = []
     for user in users:
-        items += user.items
+        for item in user.items:
+            item['username'] = user.name
+            items.append(item)
     return render_template('settings.html', users=users, items=items)
 
 
 @settings.route('/settings/user/<uid>/delete')
 @jwt_required(refresh=True)
-def delete_user(user_id):
+def delete_user(uid):
     verify_authentication()
-    user = UserModel.find_user_by_uid(user_id)
+    user = UserModel.find_user_by_uid(uid)
     if user.name == 'admin':
         flash('Admin user cannot be deleted!')
         return redirect(url_for('settings.get_settings'))
@@ -40,11 +42,13 @@ def delete_user(user_id):
 def delete_item(item_id):
     verify_authentication()
     user = UserModel.find_user_by_item_id(item_id)
-    for item in user['items']:
+    for item in user.items:
         if item['id'] == item_id:
+            user_data = user.json()
+            user_data['password'] = user.password
             current_app.logger.info("Removing item: %s" % item)
-            user['items'].remove(item)
-            updated_user = UserModel(**user)
+            user_data['items'].remove(item)
+            updated_user = UserModel(**user_data)
             updated_user.save_user_to_db()
             return redirect(url_for("settings.get_settings"))
 
@@ -81,7 +85,7 @@ def update_user(uid):
 def edit_item(item_id):
     verify_authentication()
     user = UserModel.find_user_by_item_id(item_id)
-    for item in user['items']:
+    for item in user.items:
         if item['id'] == item_id:
             return render_template('item.html', item_id=item['id'], title=item['title'])
 
@@ -91,9 +95,12 @@ def edit_item(item_id):
 def update_item(item_id):
     title = request.form.get('title')
     user = UserModel.find_user_by_item_id(item_id)
-    for item in user['items']:
-        if item['title'] != title:
-            item['title'] = title
-            updated_user = UserModel(**user)
-            updated_user.save_user_to_db()
-        return redirect(url_for("settings.get_settings"))
+    user_data = user.json()
+    for num, item in enumerate(user_data['items']):
+        if item['id'] == item_id:
+            if item['title'] != title:
+                user_data['items'][num]['title'] = title
+                user_data['password'] = user.password
+                updated_user = UserModel(**user_data)
+                updated_user.save_user_to_db()
+                return redirect(url_for("settings.get_settings"))

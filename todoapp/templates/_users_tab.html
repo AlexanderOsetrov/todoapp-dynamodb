@@ -8,18 +8,18 @@
             <table class="table">
                 <thead>
                     <tr class="table-danger">
-                        <th scope="col">ID</th>
                         <th scope="col">Name</th>
                         <th scope="col">Email</th>
+                        <th scope="col">UID</th>
                         <th scope="col">Action</th>
                     </tr>
                 </thead>
                 <tbody>
                 {% for user in users %}
                     <tr>
-                        <th scope="row">{{ user.id }}</th>
                         <td>{{ user.name }}</td>
                         <td>{{ user.email }}</td>
+                        <td scope="row">{{ user.uid }}</td>
                         <td>
                             <a href="{{ url_for('settings.edit_user', uid=user.uid) }}">
                                 <button type="button" class="btn btn-outline-danger">Edit</button>
