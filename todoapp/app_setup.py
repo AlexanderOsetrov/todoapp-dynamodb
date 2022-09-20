@@ -63,6 +63,19 @@ def register_api_resources(api):
     api.add_resource(UserItem, '/api/user/<uid>/items/<item_id>')
 
 
+def register_blueprints(app):
+    from todoapp.views.auth import auth as auth_blueprint
+    from todoapp.views.main import main as main_blueprint
+    from todoapp.views.settings import settings as settings_blueprint
+    from todoapp.views.user import user as user_blueprint
+    from todoapp.views.item import item as item_blueprint
+    app.register_blueprint(auth_blueprint)
+    app.register_blueprint(main_blueprint)
+    app.register_blueprint(settings_blueprint)
+    app.register_blueprint(user_blueprint)
+    app.register_blueprint(item_blueprint)
+
+
 def create_default_admin(flask_app):
     with flask_app.app_context():
         user = UserModel.find_user_by_name("admin")

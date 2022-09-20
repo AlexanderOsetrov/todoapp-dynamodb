@@ -11,7 +11,7 @@
         </div>
         {% endif %}
         {% endwith %}
-        <form action="{{ url_for('settings.update_user', uid=uid) }}" method="POST">
+        <form action="{{ url_for('user.update_user', uid=uid) }}" method="POST">
             <div class="mb-3 row">
                 <label for="InputEmail" class="col-sm-2 col-form-label">Email address</label>
                 <div class="col-sm-10">

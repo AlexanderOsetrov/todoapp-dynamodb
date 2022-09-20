@@ -18,7 +18,7 @@
                         <td>{{ item.id }}</td>
                         <td>{{ item.username }}</td>
                         <td>
-                            <a href="{{ url_for('settings.edit_item', item_id=item.id) }}">
+                            <a href="{{ url_for('item.edit_item', item_id=item.id) }}">
                                 <button type="button" class="btn btn-outline-danger">Edit</button>
                             </a>
                             <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#confirmItemDelete{{ item.id }}">Delete</button>
@@ -33,7 +33,7 @@
                                             Are you sure you want to delete item '{{ item.title }}' ?
                                         </div>
                                         <div class="modal-footer">
-                                            <a href="{{ url_for('settings.delete_item', item_id=item.id) }}">
+                                            <a href="{{ url_for('item.delete_item', item_id=item.id) }}">
                                                 <button type="button" class="btn btn-outline-danger">Delete</button>
                                             </a>
                                             <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>

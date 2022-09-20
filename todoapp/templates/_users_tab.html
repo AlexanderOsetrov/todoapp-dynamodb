@@ -21,7 +21,7 @@
                         <td>{{ user.email }}</td>
                         <td scope="row">{{ user.uid }}</td>
                         <td>
-                            <a href="{{ url_for('settings.edit_user', uid=user.uid) }}">
+                            <a href="{{ url_for('user.edit_user', uid=user.uid) }}">
                                 <button type="button" class="btn btn-outline-danger">Edit</button>
                             </a>
                             <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#confirmUserDelete{{ user.id }}">Delete</button>
@@ -36,7 +36,7 @@
                                             Are you sure you want to delete user '{{ user.name }}' ?
                                         </div>
                                         <div class="modal-footer">
-                                            <a href="{{ url_for('settings.delete_user', uid=user.uid) }}">
+                                            <a href="{{ url_for('user.delete_user', uid=user.uid) }}">
                                                 <button type="button" class="btn btn-outline-danger">Delete</button>
                                             </a>
                                             <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
