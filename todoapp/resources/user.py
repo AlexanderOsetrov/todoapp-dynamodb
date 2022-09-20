@@ -184,6 +184,24 @@ class UserItems(Resource):
         app.logger.info("Got items from DB for user '%s': %s" % (user.json().get("name"), todos))
         return todos
 
+    @jwt_required()
+    def post(self, uid):
+        user = UserModel.find_user_by_uid(uid)
+        if user:
+            try:
+                data = UserItem.parser.parse_args()
+                data['id'] = str(uuid4())
+                app.logger.info("Got request data from UI: %s" % data)
+                user.items.append(data)
+                app.logger.info("Adding the item to DB: %s" % data)
+                user.save_user_to_db()
+            except Exception as e:
+                app.logger.debug("An exception occurred: %s" % e)
+                return {'message': "An error occurred inserting the item"}, 500
+            return data, 201
+        else:
+            return {'message': f"User '{uid}' is not found"}, 404
+
 
 class UserItem(Resource):
 
@@ -226,24 +244,6 @@ class UserItem(Resource):
                         return {'message': "You're not allowed to delete this item"}, 403
         else:
             return {'message': f"Item '{item_id}' is not found"}, 404
-
-    @jwt_required()
-    def post(self, uid):
-        user = UserModel.find_user_by_uid(uid)
-        if user:
-            try:
-                data = UserItem.parser.parse_args()
-                data['id'] = str(uuid4())
-                app.logger.info("Got request data from UI: %s" % data)
-                user.items.append(data)
-                app.logger.info("Adding the item to DB: %s" % data)
-                user.save_user_to_db()
-            except Exception as e:
-                app.logger.debug("An exception occurred: %s" % e)
-                return {'message': "An error occurred inserting the item"}, 500
-            return data, 201
-        else:
-            return {'message': f"User '{uid}' is not found"}, 404
 
     @jwt_required()
     def put(self, uid, item_id):
