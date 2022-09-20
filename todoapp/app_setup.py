@@ -30,7 +30,7 @@ dictConfig({
 
 def get_app_version():
     try:
-        with open("app_version.json", "r") as version_file:
+        with open("todoapp/app_version.json", "r") as version_file:
             version_json = json.loads(version_file.read())
             return version_json.get('version', 'unknown')
     except FileNotFoundError:
