@@ -16,7 +16,7 @@ services:
     ports:
       - "5000:5000/tcp"
     env_file:
-      - .env.prod
+      - .env.dev
     networks:
       - app_net
     volumes:
