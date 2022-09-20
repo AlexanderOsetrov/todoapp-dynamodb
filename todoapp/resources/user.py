@@ -20,6 +20,7 @@ class Item(Resource):
         'order', type=int, required=True, help="Parameter 'order' is not provided"
     )
 
+    @jwt_required()
     def get(self, item_id):
         user = UserModel.find_user_by_item_id(item_id)
         for item in user.json()['items']:
@@ -29,6 +30,7 @@ class Item(Resource):
         else:
             return {'message': f"Item '{item_id}' is not found"}, 404
 
+    @jwt_required()
     def delete(self, item_id):
         user = UserModel.find_user_by_item_id(item_id)
         for item in user['items']:
@@ -41,6 +43,7 @@ class Item(Resource):
         else:
             return {'message': f"Item '{item_id}' is not found"}, 404
 
+    @jwt_required()
     def put(self, item_id):
         user = UserModel.find_user_by_item_id(item_id)
         data = Item.parser.parse_args()
@@ -66,19 +69,31 @@ class ItemList(Resource):
         app.logger.info("Got items from DB: %s" % items)
         return items
 
+    @jwt_required()
     def post(self):
         data = Item.parser.parse_args()
         data['id'] = str(uuid4())
         app.logger.info("Got request data from UI: %s" % data)
-        user = UserModel.find_user_by_uid(data['uid'])
-        try:
-            app.logger.info("Adding the item to DB: %s" % data)
-            user.items.append(data)
-            user.save_user_to_db()
-        except Exception as e:
-            return {'message': f"An error occurred inserting the item: {e}"}, 500
-        return data, 201
+        uid = get_jwt_identity()
+        user = UserModel.find_user_by_uid(uid)
+        if user:
+            try:
+                user_data = user.json()
+                data['id'] = str(uuid4())
+                app.logger.info("Got request data from UI: %s" % data)
+                user_data['items'].append(data)
+                app.logger.info("Adding the item to DB: %s" % data)
+                user_data['password'] = user.password
+                updated_user = UserModel(**user_data)
+                updated_user.save_user_to_db()
+            except Exception as e:
+                app.logger.debug("An exception occurred: %s" % e)
+                return {'message': "An error occurred inserting the item"}, 500
+            return data, 201
+        else:
+            return {'message': f"User '{uid}' is not found"}, 404
 
+    @jwt_required()
     def delete(self):
         users = UserModel.get_all()
         for user in users:
@@ -153,11 +168,21 @@ class UserLogin(Resource):
         user = UserModel.find_user_by_email(data['email'])
         if not user or not check_password_hash(user.password, data['password']):
             return {'message': 'Invalid credentials'}, 401
-        access_token = create_access_token(identity=user.id, fresh=True)
-        refresh_token = create_refresh_token(user.id)
+        access_token = create_access_token(identity=user.uid, fresh=True)
+        refresh_token = create_refresh_token(user.uid)
         headers = [('Set-Cookie', f'access_token_cookie={access_token}'),
                    ('Set-Cookie', f'refresh_token_cookie={refresh_token}')]
-        return {'login': True}, 200, headers
+        return {'login': True, 'access_token': access_token}, 200, headers
+
+
+class UserItems(Resource):
+
+    @jwt_required()
+    def get(self, uid):
+        user = UserModel.find_user_by_uid(uid)
+        todos = user.json()['items']
+        app.logger.info("Got items from DB for user '%s': %s" % (user.json().get("name"), todos))
+        return todos
 
 
 class UserItem(Resource):
@@ -174,11 +199,14 @@ class UserItem(Resource):
     )
 
     @jwt_required()
-    def get(self, uid):
+    def get(self, uid, item_id):
         user = UserModel.find_user_by_uid(uid)
-        todos = user.json()['items']
-        app.logger.info("Got items from DB for user '%s': %s" % (user.json().get("name"), todos))
-        return todos
+        for item in user.json()['items']:
+            if item['id'] == item_id:
+                app.logger.info("Got item from DB for user '%s': %s" % (user.name, item))
+                return item, 200
+        else:
+            return {'message': f"Item '{item_id}' is not found"}, 404
 
     @jwt_required()
     def delete(self, uid, item_id):
