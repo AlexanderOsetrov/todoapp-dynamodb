@@ -62,6 +62,7 @@ class Item(Resource):
 
 class ItemList(Resource):
 
+    @jwt_required()
     def get(self):
         items = []
         users = UserModel.get_all()
@@ -167,7 +168,7 @@ class UserLogin(Resource):
 
 class UserItems(Resource):
 
-    @jwt_required()
+    @jwt_required(refresh=True)
     def get(self, uid):
         user = UserModel.find_user_by_uid(uid)
         if user:
@@ -175,7 +176,7 @@ class UserItems(Resource):
         else:
             return {'message': f"User '{uid}' is not found"}, 404
 
-    @jwt_required()
+    @jwt_required(refresh=True)
     def post(self, uid):
         user = UserModel.find_user_by_uid(uid)
         if user:
