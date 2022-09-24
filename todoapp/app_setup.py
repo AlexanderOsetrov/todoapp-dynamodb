@@ -4,7 +4,7 @@ from flask import current_app
 from datetime import timedelta
 from todoapp.models.user import UserModel
 from logging.config import dictConfig
-from todoapp.resources.user import UserRegister, UserLogin, Item, ItemList, UserItem, UserItems
+from todoapp.resources.user import UserRegister, UserLogin, Item, ItemList, UserItem, UserItems, User
 from flask_jwt_extended import verify_jwt_in_request
 from werkzeug.security import generate_password_hash
 
@@ -61,6 +61,7 @@ def register_api_resources(api):
     api.add_resource(UserLogin, '/api/login')
     api.add_resource(UserItems, '/api/user/<uid>/items', endpoint="user_items")
     api.add_resource(UserItem, '/api/user/<uid>/items/<item_id>')
+    api.add_resource(User, '/api/user/<uid>')
 
 
 def register_blueprints(app):

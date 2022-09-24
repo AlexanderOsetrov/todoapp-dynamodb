@@ -35,11 +35,19 @@ class UserModel:
                 'items': self.items}
         )
 
+    def to_dict(self):
+        return {
+            'uid': self.uid,
+            'email': self.email,
+            'name': self.name,
+            'items': self.items
+        }
+
     def delete_user_from_db(self):
         self.table.delete_item(Key={'uid': self.uid})
 
     @staticmethod
-    def _hide_password(response):
+    def hide_password(response):
         _response = deepcopy(response)
         try:
             if isinstance(_response, list):
@@ -76,7 +84,7 @@ class UserModel:
         )
         try:
             app.logger.debug("Found record by key '%s' equals '%s':\n%s" % (
-                key, value, cls._hide_password(response['Item'])))
+                key, value, cls.hide_password(response['Item'])))
             response["Item"]["items"] = cls._format_items(response["Item"]["items"])
             return response["Item"]
         except LookupError:
@@ -89,7 +97,7 @@ class UserModel:
         )
         app.logger.debug(
             "Found record by attribute '%s' equals to '%s':\n%s" % (
-                attribute, value, cls._hide_password(response)))
+                attribute, value, cls.hide_password(response)))
         try:
             if len(response['Items']) > 1:
                 return response['Items']
@@ -105,7 +113,7 @@ class UserModel:
         )
         app.logger.debug(
             "Found data by attribute '%s' containing '%s':\n%s" % (
-                attribute, value, cls._hide_password(response)))
+                attribute, value, cls.hide_password(response)))
         try:
             if len(response['Items']) > 1:
                 return response['Items']
@@ -133,7 +141,7 @@ class UserModel:
             for item in user['items']:
                 if item['id'] == item_id:
                     app.logger.debug("User with item %s found:\n%s" % (
-                        item_id, cls._hide_password(user)))
+                        item_id, cls.hide_password(user)))
                     return user
         else:
             app.logger.debug("User with item '%s' not found" % item_id)
@@ -142,7 +150,9 @@ class UserModel:
     @classmethod
     def get_all(cls):
         response = cls.table.scan()['Items']
-        app.logger.debug("Records found:\n%s" % cls._hide_password(response))
+        for user in response:
+            user['items'] = cls._format_items(user['items'])
+        app.logger.debug("Records found:\n%s" % cls.hide_password(response))
         return response
 
     @classmethod

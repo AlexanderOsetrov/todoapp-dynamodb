@@ -32,11 +32,14 @@ class Item(Resource):
     @jwt_required()
     def delete(self, item_id):
         user = UserModel.find_user_by_item_id(item_id)
-        for item in user['items']:
-            if item['id'] == item_id:
-                user['items'].pop(item)
-                UserModel.update_user_attributes(user['uid'], items=user['items'])
-                return {'message': f"Item '{item_id}' is deleted"}, 204
+        if user:
+            for item in user['items']:
+                if item['id'] == item_id:
+                    user['items'].remove(item)
+                    UserModel.update_user_attributes(user['uid'], items=user['items'])
+                    return {'message': f"Item '{item_id}' is deleted"}, 204
+            else:
+                return {'message': f"Item '{item_id}' is not found"}, 404
         else:
             return {'message': f"Item '{item_id}' is not found"}, 404
 
@@ -44,12 +47,15 @@ class Item(Resource):
     def put(self, item_id):
         user = UserModel.find_user_by_item_id(item_id)
         data = Item.parser.parse_args()
-        for num, item in enumerate(user['items']):
-            if item['id'] == item_id:
-                user['items'][num]['title'] = data['title']
-                user['items'][num]['completed'] = data['completed']
-                UserModel.update_user_attributes(user['uid'], items=user['items'])
-                return {'message': f"Item '{item_id}' is updated", 'item': user['items'][num]}, 204
+        if user:
+            for num, item in enumerate(user['items']):
+                if item['id'] == item_id:
+                    user['items'][num]['title'] = data['title']
+                    user['items'][num]['completed'] = data['completed']
+                    UserModel.update_user_attributes(user['uid'], items=user['items'])
+                    return {'message': f"Item '{item_id}' is updated", 'item': user['items'][num]}, 204
+            else:
+                return {'message': f"Item '{item_id}' is not found"}, 404
         else:
             return {'message': f"Item '{item_id}' is not found"}, 404
 
@@ -111,13 +117,12 @@ class UserRegister(Resource):
         data['password'] = generate_password_hash(data['password'], method='sha256')
         user = UserModel(**data)
         try:
-            app.logger.info("Adding the user to DB: %s" % data)
             user.save_user_to_db()
-            app.logger.debug("Added the user to DB: %s" % UserModel.find_user_by_email(data['email']).json())
+            app.logger.debug("Added user '%s' with email '%s' to DB" % (user.name, user.email))
         except Exception as e:
             app.logger.debug("An exception occurred: %s" % e)
             return {'message': "An error occurred inserting the item"}, 500
-        return user, 201
+        return user.to_dict(), 201
 
 
 class User(Resource):
@@ -127,14 +132,14 @@ class User(Resource):
         user = UserModel.find_user_by_uid(uid)
         if not user:
             return {'message': 'User Not Found'}, 404
-        return user.json(), 200
+        return UserModel.hide_password(user), 200
 
     @jwt_required()
     def delete(self, uid):
         user = UserModel.find_user_by_uid(uid)
         if not user:
             return {'message': 'User Not Found'}, 404
-        user.delete_user_from_db()
+        UserModel(**user).delete_user_from_db()
         return {'message': 'User deleted.'}, 200
 
 
@@ -165,8 +170,10 @@ class UserItems(Resource):
     @jwt_required()
     def get(self, uid):
         user = UserModel.find_user_by_uid(uid)
-        todos = user['items']
-        return todos
+        if user:
+            return user['items'], 200
+        else:
+            return {'message': f"User '{uid}' is not found"}, 404
 
     @jwt_required()
     def post(self, uid):
@@ -241,5 +248,7 @@ class UserItem(Resource):
                         return {'message': f"Item '{item_id}' is updated"}, 204
                     else:
                         return {'message': "You're not allowed to delete this item"}, 403
+            else:
+                return {'message': f"Item '{item_id}' is not found"}, 404
         else:
             return {'message': f"Item '{item_id}' is not found"}, 404
