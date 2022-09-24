@@ -12,14 +12,11 @@ item = Blueprint('item', __name__)
 def delete_item(item_id):
     verify_authentication()
     user = UserModel.find_user_by_item_id(item_id)
-    for _item in user.items:
+    for _item in user['items']:
         if _item['id'] == item_id:
-            user_data = user.json()
-            user_data['password'] = user.password
             current_app.logger.info("Removing item: %s" % _item)
-            user_data['items'].remove(_item)
-            updated_user = UserModel(**user_data)
-            updated_user.save_user_to_db()
+            user['items'].remove(_item)
+            UserModel.update_user_attributes(user['uid'], items=user['items'])
             return redirect(url_for("settings.get_settings"))
 
 
@@ -28,7 +25,7 @@ def delete_item(item_id):
 def edit_item(item_id):
     verify_authentication()
     user = UserModel.find_user_by_item_id(item_id)
-    for _item in user.items:
+    for _item in user['items']:
         if _item['id'] == item_id:
             return render_template('item.html', item_id=_item['id'], title=_item['title'])
 
@@ -38,12 +35,9 @@ def edit_item(item_id):
 def update_item(item_id):
     title = request.form.get('title')
     user = UserModel.find_user_by_item_id(item_id)
-    user_data = user.json()
-    for num, _item in enumerate(user_data['items']):
+    for num, _item in enumerate(user['items']):
         if _item['id'] == item_id:
             if _item['title'] != title:
-                user_data['items'][num]['title'] = title
-                user_data['password'] = user.password
-                updated_user = UserModel(**user_data)
-                updated_user.save_user_to_db()
+                user['items'][num]['title'] = title
+                UserModel.update_user_attributes(user['uid'], items=user['items'])
                 return redirect(url_for("settings.get_settings"))

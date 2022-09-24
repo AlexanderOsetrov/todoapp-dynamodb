@@ -13,7 +13,10 @@ user = Blueprint('user', __name__)
 def edit_user(uid):
     verify_authentication()
     _user = UserModel.find_user_by_uid(uid)
-    return render_template('user.html', email=_user.email, name=_user.name, uid=_user.uid)
+    return render_template('user.html',
+                           email=_user['email'],
+                           name=_user['name'],
+                           uid=_user['uid'])
 
 
 @user.route('/users/<uid>/delete')
@@ -21,28 +24,27 @@ def edit_user(uid):
 def delete_user(uid):
     verify_authentication()
     _user = UserModel.find_user_by_uid(uid)
-    if _user.name == 'admin':
+    if _user['name'] == 'admin':
         flash('Admin user cannot be deleted!')
         return redirect(url_for('settings.get_settings'))
-    current_app.logger.info("Removing user: %s" % _user.json())
-    _user.delete_from_db()
+    current_app.logger.info("Removing user: %s" % _user)
+    UserModel(**_user).delete_user_from_db()
     return redirect(url_for("settings.get_settings"))
 
 
 @user.route('/users/<uid>/edit', methods=['POST'])
 @jwt_required(refresh=True)
 def update_user(uid):
+    _user = UserModel.find_user_by_uid(uid)
     email = request.form.get('email')
     name = request.form.get('name')
     password = request.form.get('password')
-    _user = UserModel.find_user_by_email(email)
-    if user and uid != _user.uid:
+    _existent_user = UserModel.find_user_by_email(email)
+    if _existent_user and uid != _user['uid']:
         flash('Email address already exists!')
         return redirect(url_for('settings.edit_user', uid=uid))
-    edited_user = UserModel.find_user_by_uid(uid)
-    edited_user.name = name
-    edited_user.email = email
     if password != "":
-        edited_user.password = generate_password_hash(password)
-    edited_user.save_user_to_db()
+        UserModel.update_user_attributes(uid, name=name, email=email, password=generate_password_hash(password))
+    else:
+        UserModel.update_user_attributes(uid, name=name, email=email)
     return redirect(url_for("settings.get_settings"))

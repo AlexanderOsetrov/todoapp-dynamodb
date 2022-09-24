@@ -23,9 +23,8 @@ class Item(Resource):
     @jwt_required()
     def get(self, item_id):
         user = UserModel.find_user_by_item_id(item_id)
-        for item in user.json()['items']:
+        for item in user['items']:
             if item['id'] == item_id:
-                app.logger.info("Got the item from DB: %s" % item)
                 return item
         else:
             return {'message': f"Item '{item_id}' is not found"}, 404
@@ -35,10 +34,8 @@ class Item(Resource):
         user = UserModel.find_user_by_item_id(item_id)
         for item in user['items']:
             if item['id'] == item_id:
-                app.logger.info("Got the item from DB: %s" % item.json())
                 user['items'].pop(item)
-                updated_user = UserModel(**user)
-                updated_user.save_user_to_db()
+                UserModel.update_user_attributes(user['uid'], items=user['items'])
                 return {'message': f"Item '{item_id}' is deleted"}, 204
         else:
             return {'message': f"Item '{item_id}' is not found"}, 404
@@ -49,11 +46,9 @@ class Item(Resource):
         data = Item.parser.parse_args()
         for num, item in enumerate(user['items']):
             if item['id'] == item_id:
-                app.logger.info("Got the item from DB: %s" % item)
                 user['items'][num]['title'] = data['title']
                 user['items'][num]['completed'] = data['completed']
-                updated_user = UserModel(**user)
-                updated_user.save_user_to_db()
+                UserModel.update_user_attributes(user['uid'], items=user['items'])
                 return {'message': f"Item '{item_id}' is updated", 'item': user['items'][num]}, 204
         else:
             return {'message': f"Item '{item_id}' is not found"}, 404
@@ -65,8 +60,7 @@ class ItemList(Resource):
         items = []
         users = UserModel.get_all()
         for user in users:
-            items += user.json()['items']
-        app.logger.info("Got items from DB: %s" % items)
+            items += user['items']
         return items
 
     @jwt_required()
@@ -78,14 +72,9 @@ class ItemList(Resource):
         user = UserModel.find_user_by_uid(uid)
         if user:
             try:
-                user_data = user.json()
-                data['id'] = str(uuid4())
                 app.logger.info("Got request data from UI: %s" % data)
-                user_data['items'].append(data)
-                app.logger.info("Adding the item to DB: %s" % data)
-                user_data['password'] = user.password
-                updated_user = UserModel(**user_data)
-                updated_user.save_user_to_db()
+                user['items'].append(data)
+                UserModel.update_user_attributes(user['uid'], items=user['items'])
             except Exception as e:
                 app.logger.debug("An exception occurred: %s" % e)
                 return {'message': "An error occurred inserting the item"}, 500
@@ -97,11 +86,7 @@ class ItemList(Resource):
     def delete(self):
         users = UserModel.get_all()
         for user in users:
-            user_data = user.json()
-            user_data['password'] = user.password
-            user_data['items'] = []
-            updated_user = UserModel(**user_data)
-            updated_user.save_user_to_db()
+            UserModel.update_user_attributes(user['uid'], items=list())
         return self.get()
 
 
@@ -132,7 +117,7 @@ class UserRegister(Resource):
         except Exception as e:
             app.logger.debug("An exception occurred: %s" % e)
             return {'message': "An error occurred inserting the item"}, 500
-        return user.json(), 201
+        return user, 201
 
 
 class User(Resource):
@@ -149,7 +134,7 @@ class User(Resource):
         user = UserModel.find_user_by_uid(uid)
         if not user:
             return {'message': 'User Not Found'}, 404
-        user.delete_from_db()
+        user.delete_user_from_db()
         return {'message': 'User deleted.'}, 200
 
 
@@ -166,10 +151,10 @@ class UserLogin(Resource):
     def post(self):
         data = UserLogin.parser.parse_args()
         user = UserModel.find_user_by_email(data['email'])
-        if not user or not check_password_hash(user.password, data['password']):
+        if not user or not check_password_hash(user['password'], data['password']):
             return {'message': 'Invalid credentials'}, 401
-        access_token = create_access_token(identity=user.uid, fresh=True)
-        refresh_token = create_refresh_token(user.uid)
+        access_token = create_access_token(identity=user['uid'], fresh=True)
+        refresh_token = create_refresh_token(user['uid'])
         headers = [('Set-Cookie', f'access_token_cookie={access_token}'),
                    ('Set-Cookie', f'refresh_token_cookie={refresh_token}')]
         return {'login': True, 'access_token': access_token}, 200, headers
@@ -180,8 +165,7 @@ class UserItems(Resource):
     @jwt_required()
     def get(self, uid):
         user = UserModel.find_user_by_uid(uid)
-        todos = user.json()['items']
-        app.logger.info("Got items from DB for user '%s': %s" % (user.json().get("name"), todos))
+        todos = user['items']
         return todos
 
     @jwt_required()
@@ -192,9 +176,9 @@ class UserItems(Resource):
                 data = UserItem.parser.parse_args()
                 data['id'] = str(uuid4())
                 app.logger.info("Got request data from UI: %s" % data)
-                user.items.append(data)
+                user['items'].append(data)
                 app.logger.info("Adding the item to DB: %s" % data)
-                user.save_user_to_db()
+                UserModel.update_user_attributes(uid, items=user['items'])
             except Exception as e:
                 app.logger.debug("An exception occurred: %s" % e)
                 return {'message': "An error occurred inserting the item"}, 500
@@ -219,9 +203,9 @@ class UserItem(Resource):
     @jwt_required()
     def get(self, uid, item_id):
         user = UserModel.find_user_by_uid(uid)
-        for item in user.json()['items']:
+        for item in user['items']:
             if item['id'] == item_id:
-                app.logger.info("Got item from DB for user '%s': %s" % (user.name, item))
+                app.logger.info("Got item from DB for user '%s': %s" % (user['name'], item))
                 return item, 200
         else:
             return {'message': f"Item '{item_id}' is not found"}, 404
@@ -230,15 +214,12 @@ class UserItem(Resource):
     def delete(self, uid, item_id):
         user = UserModel.find_user_by_uid(uid)
         if user:
-            user_data = user.json()
-            for item in user_data['items']:
+            for item in user['items']:
                 if item['id'] == item_id:
                     if uid == get_jwt_identity():
                         app.logger.info("Deleting the item from DB: %s" % item)
-                        user_data['items'].remove(item)
-                        user_data['password'] = user.password
-                        updated_user = UserModel(**user_data)
-                        updated_user.save_user_to_db()
+                        user['items'].remove(item)
+                        UserModel.update_user_attributes(uid, items=user['items'])
                         return {'message': f"Item '{item_id}' is deleted"}, 204
                     else:
                         return {'message': "You're not allowed to delete this item"}, 403
@@ -250,16 +231,13 @@ class UserItem(Resource):
         data = UserItem.parser.parse_args()
         user = UserModel.find_user_by_uid(uid)
         if user:
-            user_data = user.json()
-            for num, item in enumerate(user_data['items']):
+            for num, item in enumerate(user['items']):
                 if item['id'] == item_id:
                     if uid == get_jwt_identity():
                         app.logger.info("Updating the item: %s" % item)
-                        user_data['items'][num]['title'] = data['title']
-                        user_data['items'][num]['completed'] = data['completed']
-                        user_data['password'] = user.password
-                        updated_user = UserModel(**user_data)
-                        updated_user.save_user_to_db()
+                        user['items'][num]['title'] = data['title']
+                        user['items'][num]['completed'] = data['completed']
+                        UserModel.update_user_attributes(uid, items=user['items'])
                         return {'message': f"Item '{item_id}' is updated"}, 204
                     else:
                         return {'message': "You're not allowed to delete this item"}, 403

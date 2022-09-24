@@ -24,8 +24,8 @@
                             <a href="{{ url_for('user.edit_user', uid=user.uid) }}">
                                 <button type="button" class="btn btn-outline-danger">Edit</button>
                             </a>
-                            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#confirmUserDelete{{ user.id }}">Delete</button>
-                            <div class="modal fade" id="confirmUserDelete{{ user.id }}" tabindex="-1" aria-labelledby="confirmDeleteLabel" aria-hidden="true">
+                            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#confirmUserDelete{{ user.uid }}">Delete</button>
+                            <div class="modal fade" id="confirmUserDelete{{ user.uid }}" tabindex="-1" aria-labelledby="confirmDeleteLabel" aria-hidden="true">
                                 <div class="modal-dialog modal-dialog-centered">
                                     <div class="modal-content">
                                         <div class="modal-header">

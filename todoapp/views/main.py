@@ -19,5 +19,4 @@ def todos():
     verify_authentication()
     uid = get_jwt_identity()
     user = UserModel.find_user_by_uid(uid)
-    todo_list = user.items
-    return render_template('todos.html', todos=todo_list, uid=user.uid)
+    return render_template('todos.html', todos=user['items'], uid=user['uid'])

@@ -13,12 +13,12 @@ settings = Blueprint('settings', __name__)
 def get_settings():
     verify_authentication()
     user = UserModel.find_user_by_uid(get_jwt_identity())
-    if user.name != 'admin':
+    if user['name'] != 'admin':
         return redirect(url_for("main.index"))
     users = [user for user in UserModel.get_all()]
     items = []
     for user in users:
-        for item in user.items:
-            item['username'] = user.name
+        for item in user['items']:
+            item['username'] = user['name']
             items.append(item)
     return render_template('settings.html', users=users, items=items)

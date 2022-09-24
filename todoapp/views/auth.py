@@ -20,17 +20,17 @@ def login_post():
     email = request.form.get('email')
     password = request.form.get('password')
     user = UserModel.find_user_by_email(email)
-    if not user or not check_password_hash(user.password, password):
+    if not user or not check_password_hash(user['password'], password):
         flash('Wrong password or email!')
         return redirect(url_for('auth.login'))
     response = make_response(redirect(url_for('main.todos')))
-    additional_claims = {"user": user.name}
-    access_token = create_access_token(identity=user.uid, fresh=True, additional_claims=additional_claims)
-    refresh_token = create_refresh_token(user.uid, additional_claims=additional_claims)
+    additional_claims = {"user": user['name']}
+    access_token = create_access_token(identity=user['uid'], fresh=True, additional_claims=additional_claims)
+    refresh_token = create_refresh_token(user['uid'], additional_claims=additional_claims)
     response.set_cookie('access_token_cookie', access_token)
     response.set_cookie('refresh_token_cookie', refresh_token)
     current_app.config['USER_AUTHENTICATED'] = True
-    current_app.config['CURRENT_USER'] = user.name
+    current_app.config['CURRENT_USER'] = user['name']
     return response
 
 
@@ -48,7 +48,10 @@ def signup_post():
     if user:
         flash('Email address already exists!')
         return redirect(url_for('auth.signup'))
-    new_user = UserModel(email=email, name=name, password=generate_password_hash(password, method='sha256'))
+    new_user = UserModel(
+        email=email,
+        name=name,
+        password=generate_password_hash(password, method='sha256'))
     new_user.save_user_to_db()
     if current_app.config['USER_AUTHENTICATED']:
         return redirect(url_for('main.index'))
