@@ -18,6 +18,15 @@
                     <input class="form-control" name="title" id="InputTitle" value="{{ title }}">
                 </div>
             </div>
+            <div class="mb-3 form-check form-switch">
+               {% if completed %}
+                  <input type="checkbox" name="completed" class="form-check-input" id="todoCompleted" checked>
+                  <label class="form-check-label" for="todoCompleted">Completed</label>
+               {% else %}
+                  <input type="checkbox" name="completed" class="form-check-input" id="todoNotCompleted">
+                  <label class="form-check-label" for="todoNotCompleted">Completed</label>
+               {% endif %}
+            </div>
             <button type="submit" class="btn btn-outline-danger">Submit</button>
         </form>
     </div>

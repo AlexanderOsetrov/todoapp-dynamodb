@@ -18,7 +18,7 @@
                         <td>{{ item.username }}</td>
                         <td>{{ item.id }}</td>
                         <td>
-                            <a href="{{ url_for('item.edit_item', item_id=item.id) }}">
+                            <a href="{{ url_for('item.edit_item', item_id=item.id, completed=item.completed) }}">
                                 <button type="button" class="btn btn-outline-danger">Edit</button>
                             </a>
                             <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#confirmItemDelete{{ item.id }}">Delete</button>

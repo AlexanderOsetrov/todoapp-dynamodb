@@ -27,17 +27,26 @@ def edit_item(item_id):
     user = UserModel.find_user_by_item_id(item_id)
     for _item in user['items']:
         if _item['id'] == item_id:
-            return render_template('item.html', item_id=_item['id'], title=_item['title'])
+            return render_template('item.html',
+                                   item_id=_item['id'],
+                                   title=_item['title'],
+                                   completed=_item['completed'])
 
 
 @item.route('/item/<item_id>/edit', methods=['POST'])
 @jwt_required(refresh=True)
 def update_item(item_id):
     title = request.form.get('title')
+    if request.form.get('completed') == 'on':
+        completed = True
+    else:
+        completed = False
+    current_app.logger.info("Values from submit: %s", request.form)
     user = UserModel.find_user_by_item_id(item_id)
     for num, _item in enumerate(user['items']):
         if _item['id'] == item_id:
             if _item['title'] != title:
                 user['items'][num]['title'] = title
+                user['items'][num]['completed'] = completed
                 UserModel.update_user_attributes(user['uid'], items=user['items'])
                 return redirect(url_for("settings.get_settings"))
